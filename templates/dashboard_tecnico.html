@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Smart HelpDesk – Bandeja Técnico</title>
+  <link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;600;700&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing:border-box; margin:0; padding:0; }
+    :root {
+      --bg:#0b0f1a; --surface:#131929; --surface2:#1c2539; --surface3:#222d45;
+      --border:#2a3655; --accent:#4f8ef7; --accent2:#6ee7b7;
+      --text:#e8edf8; --muted:#7a8ab0;
+      --critica:#f87171; --media:#fb923c; --baja:#6ee7b7;
+      --danger:#f87171; --success:#6ee7b7; --warn:#fbbf24;
+    }
+    body { font-family:'Sora',sans-serif; background:var(--bg); color:var(--text); min-height:100vh; }
+
+    /* NAV */
+    nav {
+      background:var(--surface); border-bottom:1px solid var(--border);
+      padding:0 32px; height:64px;
+      display:flex; align-items:center; justify-content:space-between;
+      position:sticky; top:0; z-index:100;
+    }
+    .nav-logo { display:flex; align-items:center; gap:10px; font-weight:700; font-size:1.1rem; }
+    .nav-right { display:flex; align-items:center; gap:14px; }
+    .nav-user  { font-size:.85rem; color:var(--muted); }
+    .nav-user strong { color:var(--text); }
+    .btn-nav   { background:var(--surface2); border:1px solid var(--border); color:var(--muted); padding:7px 16px; border-radius:8px; font-family:'Sora',sans-serif; font-size:.82rem; cursor:pointer; text-decoration:none; transition:all .2s; }
+    .btn-nav:hover { border-color:var(--accent); color:var(--accent); }
+    .btn-refresh { background:rgba(79,142,247,.1); border:1px solid rgba(79,142,247,.25); color:var(--accent); }
+
+    /* STATS BAR */
+    .stats-bar {
+      background:var(--surface); border-bottom:1px solid var(--border);
+      padding:16px 32px; display:flex; gap:24px; flex-wrap:wrap;
+    }
+    .stat-chip {
+      display:flex; align-items:center; gap:8px;
+      background:var(--surface2); border:1px solid var(--border);
+      border-radius:10px; padding:10px 16px; font-size:.82rem;
+    }
+    .stat-chip .num { font-size:1.2rem; font-weight:700; }
+    .stat-chip.critica .num { color:var(--critica); }
+    .stat-chip.media   .num { color:var(--media);   }
+    .stat-chip.baja    .num { color:var(--baja);    }
+    .stat-chip.total   .num { color:var(--accent);  }
+
+    /* MAIN */
+    .container { padding:28px 32px; }
+
+    .section-title {
+      font-size:.72rem; font-weight:600; color:var(--muted);
+      letter-spacing:.1em; text-transform:uppercase;
+      margin-bottom:16px; display:flex; align-items:center; gap:10px;
+    }
+    .section-title::after { content:''; flex:1; height:1px; background:var(--border); }
+
+    /* TICKET ROW */
+    .ticket-row {
+      background:var(--surface); border:1px solid var(--border); border-radius:12px;
+      padding:20px 24px; margin-bottom:12px; display:flex; gap:20px; align-items:flex-start;
+      transition:border-color .2s, transform .1s; text-decoration:none; color:var(--text);
+      position:relative; overflow:hidden;
+    }
+    .ticket-row::before {
+      content:''; position:absolute; left:0; top:0; bottom:0; width:4px;
+    }
+    .ticket-row.critica::before { background:var(--critica); }
+    .ticket-row.media::before   { background:var(--media); }
+    .ticket-row.baja::before    { background:var(--baja); }
+    .ticket-row:hover { border-color:var(--accent); transform:translateY(-1px); box-shadow:0 6px 20px rgba(0,0,0,.3); }
+
+    .rank {
+      font-size:1.3rem; font-weight:700; color:var(--muted);
+      min-width:28px; text-align:center; line-height:1; padding-top:2px;
+    }
+
+    .tr-main { flex:1; min-width:0; }
+    .tr-top { display:flex; align-items:center; gap:10px; flex-wrap:wrap; margin-bottom:8px; }
+    .tr-asunto { font-weight:600; font-size:.98rem; }
+
+    .badge {
+      display:inline-flex; align-items:center; gap:4px;
+      padding:3px 10px; border-radius:20px; font-size:.72rem; font-weight:600;
+    }
+    .badge-critica { background:rgba(248,113,113,.15); color:var(--critica); border:1px solid rgba(248,113,113,.3); }
+    .badge-media   { background:rgba(251,146,60,.15);  color:var(--media);   border:1px solid rgba(251,146,60,.3); }
+    .badge-baja    { background:rgba(110,231,183,.15); color:var(--baja);    border:1px solid rgba(110,231,183,.3); }
+    .badge-ia      { background:rgba(124,58,237,.12);  color:#a78bfa;        border:1px solid rgba(124,58,237,.25); }
+
+    .tr-desc { font-size:.85rem; color:var(--muted); line-height:1.5; margin-bottom:10px; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; }
+
+    .tr-meta { display:flex; gap:16px; flex-wrap:wrap; font-size:.75rem; color:var(--muted); }
+    .tr-meta span { display:flex; align-items:center; gap:4px; }
+
+    .tr-actions { display:flex; flex-direction:column; gap:8px; align-items:flex-end; flex-shrink:0; }
+    .btn-reply  {
+      background:linear-gradient(135deg,var(--accent),#7c3aed); color:#fff; border:none;
+      border-radius:8px; padding:8px 18px; font-family:'Sora',sans-serif;
+      font-size:.82rem; font-weight:600; cursor:pointer; white-space:nowrap;
+      text-decoration:none; transition:opacity .2s;
+    }
+    .btn-reply:hover { opacity:.9; }
+
+    .msg-count {
+      font-size:.75rem; color:var(--muted); text-align:center;
+      white-space:nowrap;
+    }
+    .msg-count.has-new { color:var(--accent); font-weight:600; }
+
+    .empty-state { text-align:center; padding:80px 20px; color:var(--muted); }
+    .empty-state .icon { font-size:52px; margin-bottom:16px; }
+
+    .alert { padding:12px 16px; border-radius:8px; font-size:.85rem; margin-bottom:20px; }
+    .alert-success { background:rgba(110,231,183,.1); border:1px solid rgba(110,231,183,.3); color:var(--success); }
+    .alert-danger  { background:rgba(248,113,113,.1); border:1px solid rgba(248,113,113,.3); color:var(--danger); }
+  </style>
+</head>
+<body>
+
+<nav>
+  <div class="nav-logo">🛠️ Smart HelpDesk <span style="color:var(--muted); font-weight:300; font-size:.85rem; margin-left:4px">· Vista Técnico</span></div>
+  <div class="nav-right">
+    <span class="nav-user">👤 <strong>{{ session.nombre }}</strong></span>
+    <button onclick="location.reload()" class="btn-nav btn-refresh">🔄 Actualizar</button>
+    <a href="/logout" class="btn-nav">Salir</a>
+  </div>
+</nav>
+
+<!-- Stats -->
+{% set criticas = tickets | selectattr('ia_prioridad', 'in', ['1-CRÍTICA','1-CRITICA']) | list %}
+{% set medias   = tickets | selectattr('ia_prioridad', 'equalto', '2-MEDIA') | list %}
+{% set bajas    = tickets | rejectattr('ia_prioridad', 'in', ['1-CRÍTICA','1-CRITICA']) | rejectattr('ia_prioridad', 'equalto', '2-MEDIA') | list %}
+
+<div class="stats-bar">
+  <div class="stat-chip total">
+    <span>📋</span>
+    <div><div class="num">{{ tickets|length }}</div><div style="color:var(--muted);font-size:.72rem">Total activos</div></div>
+  </div>
+  <div class="stat-chip critica">
+    <span>🔴</span>
+    <div><div class="num">{{ criticas|length }}</div><div style="color:var(--muted);font-size:.72rem">Críticos</div></div>
+  </div>
+  <div class="stat-chip media">
+    <span>🟠</span>
+    <div><div class="num">{{ medias|length }}</div><div style="color:var(--muted);font-size:.72rem">Media prioridad</div></div>
+  </div>
+  <div class="stat-chip baja">
+    <span>🟢</span>
+    <div><div class="num">{{ bajas|length }}</div><div style="color:var(--muted);font-size:.72rem">Baja prioridad</div></div>
+  </div>
+</div>
+
+<div class="container">
+
+  {% with messages = get_flashed_messages(with_categories=true) %}
+    {% for cat, msg in messages %}
+      <div class="alert alert-{{ cat }}">{{ msg }}</div>
+    {% endfor %}
+  {% endwith %}
+
+  {% if not tickets %}
+    <div class="empty-state">
+      <div class="icon">✅</div>
+      <p>Sin tickets activos. ¡Todo en orden!</p>
+    </div>
+  {% else %}
+
+  <div class="section-title">Bandeja ordenada por prioridad</div>
+
+  {% for t in tickets %}
+    {% if t.ia_prioridad in ['1-CRÍTICA','1-CRITICA'] %}
+      {% set rc = 'critica' %}
+      {% set bc = 'badge-critica' %}
+      {% set pi = '🔴' %}
+    {% elif t.ia_prioridad == '2-MEDIA' %}
+      {% set rc = 'media' %}
+      {% set bc = 'badge-media' %}
+      {% set pi = '🟠' %}
+    {% else %}
+      {% set rc = 'baja' %}
+      {% set bc = 'badge-baja' %}
+      {% set pi = '🟢' %}
+    {% endif %}
+
+    <div class="ticket-row {{ rc }}">
+      <div class="rank">#{{ loop.index }}</div>
+
+      <div class="tr-main">
+        <div class="tr-top">
+          <span class="badge {{ bc }}">{{ pi }} {{ t.ia_prioridad or 'Sin clasificar' }}</span>
+          {% if t.ia_sentimiento %}
+            <span class="badge badge-ia">🤖 {{ t.ia_sentimiento }}</span>
+          {% endif %}
+          <strong class="tr-asunto">{{ t.asunto }}</strong>
+        </div>
+
+        <p class="tr-desc">{{ t.descripcion }}</p>
+
+        <div class="tr-meta">
+          <span>👤 <strong>{{ t.solicitante }}</strong> ({{ t.departamento }})</span>
+          {% if t.equipo %}
+            <span>🏢 {{ t.equipo }}</span>
+          {% endif %}
+          {% if t.ia_tecnologias and t.ia_tecnologias != 'N/A' %}
+            <span>🔍 {{ t.ia_tecnologias }}</span>
+          {% endif %}
+          <span>🕐 {{ t.creado_el.strftime('%d/%m/%Y %H:%M') if t.creado_el else '' }}</span>
+        </div>
+      </div>
+
+      <div class="tr-actions">
+        <a href="/ticket/{{ t.id }}" class="btn-reply">Responder →</a>
+        <span class="msg-count {{ 'has-new' if t.num_mensajes > 1 else '' }}">
+          💬 {{ t.num_mensajes }} mensaje(s)
+        </span>
+      </div>
+    </div>
+  {% endfor %}
+
+  {% endif %}
+</div>
+</body>
+</html>

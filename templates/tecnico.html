@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Smart HelpDesk – Bandeja Técnico</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <style>
+    body { background: #f0f2f5; }
+    .badge-critica  { background-color: #dc3545; font-size: .85rem; }
+    .badge-media    { background-color: #fd7e14; font-size: .85rem; }
+    .badge-baja     { background-color: #198754; font-size: .85rem; }
+    .row-critica    { border-left: 5px solid #dc3545 !important; background: #fff5f5; }
+    .row-media      { border-left: 5px solid #fd7e14 !important; }
+    .row-baja       { border-left: 5px solid #198754 !important; }
+    .ticket-card    { border-radius: 8px; margin-bottom: 12px; }
+    .rank-badge     { font-size: 1.4rem; font-weight: 700; color: #6c757d; min-width: 36px; }
+  </style>
+</head>
+<body>
+<nav class="navbar navbar-dark bg-dark mb-4">
+  <div class="container">
+    <span class="navbar-brand fw-bold">🛠️ Smart HelpDesk – Vista Técnico</span>
+    <a href="/" class="btn btn-outline-light btn-sm">← Registrar Ticket</a>
+  </div>
+</nav>
+
+<div class="container">
+  <div class="d-flex justify-content-between align-items-center mb-3">
+    <h4 class="mb-0">Bandeja de Entrada
+      <span class="badge bg-secondary ms-2">{{ tickets|length }} ticket(s)</span>
+    </h4>
+    <button onclick="location.reload()" class="btn btn-sm btn-outline-secondary">🔄 Actualizar</button>
+  </div>
+
+  {% if not tickets %}
+    <div class="alert alert-info">No hay tickets activos por el momento.</div>
+  {% endif %}
+
+  {% for t in tickets %}
+    {% if t.ia_prioridad == '1-CRÍTICA' %}
+      {% set row_class = 'row-critica' %}
+      {% set badge_class = 'badge-critica' %}
+    {% elif t.ia_prioridad == '2-MEDIA' %}
+      {% set row_class = 'row-media' %}
+      {% set badge_class = 'badge-media' %}
+    {% else %}
+      {% set row_class = 'row-baja' %}
+      {% set badge_class = 'badge-baja' %}
+    {% endif %}
+
+    <div class="card ticket-card {{ row_class }}">
+      <div class="card-body">
+        <div class="d-flex align-items-start gap-3">
+
+          <span class="rank-badge">#{{ loop.index }}</span>
+
+          <div class="flex-grow-1">
+            <div class="d-flex flex-wrap align-items-center gap-2 mb-1">
+              <span class="badge {{ badge_class }}">
+                {% if t.ia_prioridad == '1-CRÍTICA' %}🔴{% elif t.ia_prioridad == '2-MEDIA' %}🟠{% else %}🟢{% endif %}
+                {{ t.ia_prioridad or 'Sin clasificar' }}
+              </span>
+              <strong>{{ t.asunto }}</strong>
+            </div>
+
+            <p class="mb-1 text-muted" style="font-size:.9rem">{{ t.descripcion }}</p>
+
+            <div class="d-flex flex-wrap gap-3 mt-2" style="font-size:.82rem; color:#555">
+              <span>👤 <strong>{{ t.solicitante }}</strong> ({{ t.departamento }})</span>
+              <span>🏢 {{ t.equipo or 'Sin equipo asignado' }}</span>
+              <span>🤖 Sentimiento: <strong>{{ t.ia_sentimiento or 'N/A' }}</strong></span>
+              <span>🔍 Entidades: {{ t.ia_tecnologias or 'N/A' }}</span>
+              <span>🕐 {{ t.creado_el.strftime('%d/%m/%Y %H:%M') if t.creado_el else '' }}</span>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+  {% endfor %}
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

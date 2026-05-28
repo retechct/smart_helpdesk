@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Smart HelpDesk – Mi Panel</title>
+  <link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;600;700&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --bg: #0b0f1a; --surface: #131929; --surface2: #1c2539; --surface3: #222d45;
+      --border: #2a3655; --accent: #4f8ef7; --accent2: #6ee7b7;
+      --text: #e8edf8; --muted: #7a8ab0;
+      --critica: #f87171; --media: #fb923c; --baja: #6ee7b7;
+      --danger: #f87171; --success: #6ee7b7; --warn: #fbbf24;
+    }
+    body { font-family:'Sora',sans-serif; background:var(--bg); color:var(--text); min-height:100vh; }
+
+    /* NAV */
+    nav {
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      padding: 0 32px;
+      height: 64px;
+      display: flex; align-items: center; justify-content: space-between;
+      position: sticky; top: 0; z-index: 100;
+    }
+    .nav-logo { display:flex; align-items:center; gap:10px; font-weight:700; font-size:1.1rem; }
+    .nav-logo span { font-size:22px; }
+    .nav-right { display:flex; align-items:center; gap:16px; }
+    .nav-user { font-size:.85rem; color:var(--muted); }
+    .nav-user strong { color:var(--text); }
+    .btn-nav {
+      background: var(--surface2); border: 1px solid var(--border); color: var(--muted);
+      padding: 7px 16px; border-radius: 8px; font-family:'Sora',sans-serif;
+      font-size: .82rem; cursor: pointer; text-decoration: none; transition: all .2s;
+    }
+    .btn-nav:hover { border-color: var(--accent); color: var(--accent); }
+
+    /* LAYOUT */
+    .layout { display: grid; grid-template-columns: 380px 1fr; gap: 0; min-height: calc(100vh - 64px); }
+
+    /* LEFT PANEL – New ticket form */
+    .panel-left {
+      background: var(--surface);
+      border-right: 1px solid var(--border);
+      padding: 32px 28px;
+      overflow-y: auto;
+    }
+
+    .panel-title { font-size: .72rem; font-weight: 600; color: var(--muted); letter-spacing: .1em; text-transform: uppercase; margin-bottom: 20px; }
+
+    .form-section h3 { font-size: 1.15rem; font-weight: 700; margin-bottom: 4px; }
+    .form-section p  { font-size: .82rem; color: var(--muted); margin-bottom: 24px; line-height: 1.5; }
+
+    .field { margin-bottom: 16px; }
+    label { display:block; font-size:.78rem; font-weight:600; color:var(--muted); margin-bottom:7px; letter-spacing:.04em; text-transform:uppercase; }
+
+    input[type=text], textarea {
+      width:100%; background:var(--surface2); border:1px solid var(--border); border-radius:8px;
+      padding:11px 14px; color:var(--text); font-family:'Sora',sans-serif; font-size:.9rem;
+      transition:border-color .2s,box-shadow .2s; outline:none; resize:vertical;
+    }
+    input:focus, textarea:focus { border-color:var(--accent); box-shadow:0 0 0 3px rgba(79,142,247,.12); }
+
+    .btn-submit {
+      width:100%; background:linear-gradient(135deg,var(--accent),#7c3aed); color:#fff;
+      border:none; border-radius:10px; padding:13px; font-family:'Sora',sans-serif;
+      font-size:.95rem; font-weight:600; cursor:pointer; margin-top:4px; transition:opacity .2s;
+    }
+    .btn-submit:hover { opacity:.9; }
+
+    .ai-badge {
+      display: flex; align-items: center; gap: 8px;
+      background: rgba(79,142,247,.08); border: 1px solid rgba(79,142,247,.2);
+      border-radius: 8px; padding: 10px 12px; margin-top: 16px;
+      font-size: .78rem; color: var(--muted);
+    }
+    .ai-badge span { font-size: 16px; }
+
+    /* RIGHT PANEL – Tickets */
+    .panel-right { padding: 32px 28px; overflow-y: auto; }
+
+    .panel-header {
+      display: flex; align-items: center; justify-content: space-between; margin-bottom: 24px;
+    }
+    .panel-header h2 { font-size: 1.3rem; font-weight: 700; }
+    .count-badge {
+      background: var(--surface2); border: 1px solid var(--border);
+      color: var(--muted); font-size: .78rem; padding: 4px 12px; border-radius: 20px;
+    }
+
+    /* ALERTS */
+    .alert { padding:12px 16px; border-radius:8px; font-size:.85rem; margin-bottom:20px; }
+    .alert-danger  { background:rgba(248,113,113,.1); border:1px solid rgba(248,113,113,.3); color:var(--danger); }
+    .alert-success { background:rgba(110,231,183,.1); border:1px solid rgba(110,231,183,.3); color:var(--success); }
+    .alert-warning { background:rgba(251,191,36,.1);  border:1px solid rgba(251,191,36,.3);  color:var(--warn); }
+
+    /* TICKET CARDS */
+    .ticket-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 20px;
+      margin-bottom: 14px;
+      cursor: pointer;
+      transition: border-color .2s, transform .15s, box-shadow .2s;
+      text-decoration: none;
+      display: block;
+      color: var(--text);
+    }
+    .ticket-card:hover { border-color: var(--accent); transform: translateY(-2px); box-shadow: 0 8px 24px rgba(0,0,0,.3); }
+
+    .ticket-card.critica { border-left: 4px solid var(--critica); }
+    .ticket-card.media   { border-left: 4px solid var(--media); }
+    .ticket-card.baja    { border-left: 4px solid var(--baja); }
+    .ticket-card.sin     { border-left: 4px solid var(--border); }
+
+    .tc-top { display:flex; align-items:flex-start; justify-content:space-between; gap:12px; margin-bottom:8px; }
+    .tc-asunto { font-weight:600; font-size:.95rem; }
+    .tc-badges { display:flex; gap:6px; flex-shrink:0; }
+
+    .badge {
+      display:inline-flex; align-items:center; gap:4px;
+      padding:3px 10px; border-radius:20px; font-size:.72rem; font-weight:600;
+    }
+    .badge-critica { background:rgba(248,113,113,.15); color:var(--critica); border:1px solid rgba(248,113,113,.3); }
+    .badge-media   { background:rgba(251,146,60,.15);  color:var(--media);   border:1px solid rgba(251,146,60,.3); }
+    .badge-baja    { background:rgba(110,231,183,.15); color:var(--baja);    border:1px solid rgba(110,231,183,.3); }
+    .badge-abierto { background:rgba(79,142,247,.12);  color:var(--accent);  border:1px solid rgba(79,142,247,.25); }
+    .badge-cerrado { background:rgba(122,138,176,.12); color:var(--muted);   border:1px solid rgba(122,138,176,.2); }
+    .badge-ia      { background:rgba(124,58,237,.12);  color:#a78bfa;        border:1px solid rgba(124,58,237,.25); }
+
+    .tc-desc { font-size:.82rem; color:var(--muted); line-height:1.5; margin-bottom:10px; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; }
+
+    .tc-meta { display:flex; gap:14px; flex-wrap:wrap; font-size:.75rem; color:var(--muted); }
+    .tc-meta span { display:flex; align-items:center; gap:4px; }
+
+    .empty-state {
+      text-align:center; padding:60px 20px; color:var(--muted);
+    }
+    .empty-state .icon { font-size:48px; margin-bottom:16px; }
+    .empty-state p { font-size:.9rem; }
+  </style>
+</head>
+<body>
+
+<nav>
+  <div class="nav-logo"><span>🛡️</span> Smart HelpDesk</div>
+  <div class="nav-right">
+    <span class="nav-user">👤 <strong>{{ session.nombre }}</strong></span>
+    <a href="/logout" class="btn-nav">Salir</a>
+  </div>
+</nav>
+
+<div class="layout">
+
+  <!-- PANEL IZQUIERDO: Nuevo Ticket -->
+  <aside class="panel-left">
+    <p class="panel-title">✦ Reportar incidente</p>
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% for cat, msg in messages %}
+        <div class="alert alert-{{ cat }}">{{ msg }}</div>
+      {% endfor %}
+    {% endwith %}
+
+    <div class="form-section">
+      <h3>Nuevo ticket</h3>
+      <p>Describe tu problema con el mayor detalle posible. La IA lo clasificará automáticamente.</p>
+
+      <form action="/ticket/nuevo" method="POST">
+        <div class="field">
+          <label>Asunto</label>
+          <input type="text" name="asunto" placeholder="Ej: No puedo acceder al sistema de ventas" required>
+        </div>
+        <div class="field">
+          <label>Descripción detallada</label>
+          <textarea name="descripcion" rows="7"
+            placeholder="Describe paso a paso lo que ocurrió, qué mensajes de error ves, desde cuándo sucede..." required></textarea>
+        </div>
+        <button class="btn-submit" type="submit">🚀 Enviar ticket</button>
+      </form>
+
+      <div class="ai-badge">
+        <span>🤖</span>
+        <div>Azure AI analiza tu descripción automáticamente para asignar prioridad y equipo.</div>
+      </div>
+    </div>
+  </aside>
+
+  <!-- PANEL DERECHO: Lista de tickets -->
+  <main class="panel-right">
+    <div class="panel-header">
+      <h2>Mis tickets</h2>
+      <span class="count-badge">{{ tickets|length }} total</span>
+    </div>
+
+    {% if not tickets %}
+      <div class="empty-state">
+        <div class="icon">📭</div>
+        <p>No tienes tickets registrados.<br>¡Usa el formulario para reportar un problema!</p>
+      </div>
+    {% endif %}
+
+    {% for t in tickets %}
+      {% if t.ia_prioridad == '1-CRÍTICA' or t.ia_prioridad == '1-CRITICA' %}
+        {% set card_class = 'critica' %}
+        {% set badge_class = 'badge-critica' %}
+        {% set prio_icon = '🔴' %}
+      {% elif t.ia_prioridad == '2-MEDIA' %}
+        {% set card_class = 'media' %}
+        {% set badge_class = 'badge-media' %}
+        {% set prio_icon = '🟠' %}
+      {% elif t.ia_prioridad == '3-BAJA' %}
+        {% set card_class = 'baja' %}
+        {% set badge_class = 'badge-baja' %}
+        {% set prio_icon = '🟢' %}
+      {% else %}
+        {% set card_class = 'sin' %}
+        {% set badge_class = '' %}
+        {% set prio_icon = '⚪' %}
+      {% endif %}
+
+      <a href="/ticket/{{ t.id }}" class="ticket-card {{ card_class }}">
+        <div class="tc-top">
+          <span class="tc-asunto">{{ t.asunto }}</span>
+          <div class="tc-badges">
+            {% if t.ia_prioridad %}
+              <span class="badge {{ badge_class }}">{{ prio_icon }} {{ t.ia_prioridad }}</span>
+            {% endif %}
+            <span class="badge {{ 'badge-cerrado' if t.estado == 'Cerrado' else 'badge-abierto' }}">
+              {{ t.estado }}
+            </span>
+          </div>
+        </div>
+
+        <p class="tc-desc">{{ t.descripcion }}</p>
+
+        <div class="tc-meta">
+          {% if t.equipo %}
+            <span>🏢 {{ t.equipo }}</span>
+          {% endif %}
+          {% if t.ia_sentimiento %}
+            <span class="badge badge-ia" style="font-size:.72rem">🤖 {{ t.ia_sentimiento }}</span>
+          {% endif %}
+          <span>💬 {{ t.num_mensajes }} mensaje(s)</span>
+          <span>🕐 {{ t.creado_el.strftime('%d/%m/%Y %H:%M') if t.creado_el else '' }}</span>
+        </div>
+      </a>
+    {% endfor %}
+  </main>
+
+</div>
+</body>
+</html>
