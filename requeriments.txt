@@ -4,3 +4,4 @@ azure-ai-textanalytics
 azure-core
 psycopg2-binary
 werkzeug
+gunicorn

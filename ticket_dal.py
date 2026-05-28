@@ -12,10 +12,13 @@ from werkzeug.security import generate_password_hash, check_password_hash
 
 def _get_conn():
     return psycopg2.connect(
-        host=DB_HOST, port=DB_PORT, user=DB_USER,
-        password=DB_PASSWORD, dbname=DB_NAME,
+        host=DB_HOST,
+        port=DB_PORT,
+        user=DB_USER,
+        password=DB_PASSWORD,
+        dbname=DB_NAME,
+        sslmode="require"      # ← esta línea es clave para Neon
     )
-
 
 # ── Usuarios ──────────────────────────────────────────────────────────────────
 
