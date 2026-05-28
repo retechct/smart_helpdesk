@@ -235,15 +235,6 @@ def obtener_mensajes(ticket_id):
             FROM mensajes m
             LEFT JOIN usuarios u ON m.autor_id = u.id
             LEFT JOIN roles r ON u.rol_id = r.id
-            ORDER BY m.creado_el ASC
-        """, )
-        # Filter by ticket_id
-        cur.execute("""
-            SELECT m.id, m.contenido, m.creado_el, m.es_sistema,
-                   u.nombre AS autor, r.nombre_rol AS rol_autor
-            FROM mensajes m
-            LEFT JOIN usuarios u ON m.autor_id = u.id
-            LEFT JOIN roles r ON u.rol_id = r.id
             WHERE m.ticket_id = %s
             ORDER BY m.creado_el ASC
         """, (ticket_id,))
